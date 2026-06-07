@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jun 07, 2026 at 02:50 AM
+-- Generation Time: Jun 07, 2026 at 03:39 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `layanan_medis`
+-- Database: `rumahsakit`
 --
 
 -- --------------------------------------------------------
