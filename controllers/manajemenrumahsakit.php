@@ -17,9 +17,12 @@ class ManajemenRumahSakit {
     // Menarik data relasional dari 4 tabel di database (Job 1 & Job 4)
     public function loadDataDariDatabase() {
         if ($this->db === null) {
-            echo "<p style='color:red; font-weight:bold;'>Gagal memuat data: Koneksi ke database belum terbentuk.</p>";
+            echo "<tr><td colspan='4' style='color:red; font-weight:bold; text-align:center;'>Gagal memuat data: Koneksi ke database belum terbentuk.</td></tr>";
             return;
         }
+
+        // Mencegah duplikasi data jika fungsi dipanggil lebih dari sekali dalam satu runtime
+        $this->daftarPasien = [];
 
         $query = "SELECT p.*, b.nomor_pbi, b.faskes_asal, b.kelas_kamar, 
                      a.nama_provider, a.nomor_polis, a.limit_cover, 
@@ -52,23 +55,51 @@ class ManajemenRumahSakit {
         }
     }
 
-    // TARUH FUNGSI TAMPILAN HTML BARU DI SINI (Dynamic Binding)
+    // Fungsi cetak gabungan seluruh data pasien tanpa filter (Menu Laporan Semua Pasien)
     public function tampilkanLaporanHTML() {
-        echo "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>";
-        echo "<h2 style='text-align: center; color: #2c3e50; margin-bottom: 0;'>LAPORAN BIAYA LAYANAN MEDIS RUMAH SAKIT</h2>";
-        echo "<p style='text-align: center; color: #7f8c8d; margin-top: 5px;'>Sistem Backend Polimorfik Berbasis Web</p>";
-        echo "<hr style='border: 0; border-top: 2px solid #34495e; margin-bottom: 20px;'>";
-        
-        foreach ($this->daftarPasien as $p) {
-            echo "<div style='background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-left: 5px solid #3498db; border-radius: 4px;'>";
-            echo "<table style='width: 100%; border-collapse: collapse;'>";
-            echo "<tr><td style='width: 150px;'><b>ID Pasien</b></td><td>: " . $p->getIdPasien() . "</td></tr>";
-            echo "<tr><td><b>Nama Pasien</b></td><td>: " . $p->getNama() . "</td></tr>";
-echo "<tr><td><b>Klaster Penjamin</b></td><td>: " . $p->cetakKlaimLayanan() . "</td></tr>";
-            echo "<tr><td><b>Total Biaya Mandiri</b></td><td style='color: #e74c3c; font-weight: bold;'>: Rp " . number_format($p->hitungTotalBiaya(), 0, ',', '.') . "</td></tr>"; // Dynamic Binding
-            echo "</table>";
-            echo "</div>";
+        if (empty($this->daftarPasien)) {
+            echo "<tr><td colspan='4' style='text-align:center; color:orange;'>Tidak ada data pasien yang termuat dari basis data.</td></tr>";
+            return;
         }
-        echo "</div>";
+
+        foreach ($this->daftarPasien as $p) {
+            echo "<tr>";
+            echo "<td><span style='background:#f1f3f5; padding:4px 8px; border-radius:4px; font-family:monospace; font-weight:600;'>" . $p->getIdPasien() . "</span></td>";
+            echo "<td><b>" . $p->getNama() . "</b></td>";
+            echo "<td>" . $p->cetakKlaimLayanan() . "</td>"; // Dynamic Binding
+            echo "<td style='color: #e74c3c; font-weight: bold;'>Rp " . number_format($p->hitungTotalBiaya(), 0, ',', '.') . "</td>"; // Dynamic Binding
+            echo "</tr>";
+        }
+    }
+
+    // Fungsi untuk memfilter tampilan data pasien spesifik per jenis tabel/klaster 
+    public function tampilkanLaporanHTMLPerTabel($filter) {
+        if (empty($this->daftarPasien)) {
+            echo "<tr><td colspan='4' style='text-align:center; color:orange;'>Tidak ada data pasien yang termuat dari basis data.</td></tr>";
+            return;
+        }
+
+        $dataDitemukan = false;
+
+        foreach ($this->daftarPasien as $p) {
+            // Logika pengecekan class objek untuk menyaring tampilan sesuai filter menu 
+            if (($filter == 'bpjs' && get_class($p) == 'PasienBPJS') ||
+                ($filter == 'asuransi' && get_class($p) == 'PasienAsuransiSwasta') ||
+                ($filter == 'umum' && get_class($p) == 'PasienUmum')) {
+                
+                $dataDitemukan = true;
+                
+                echo "<tr>";
+                echo "<td><span style='background:#f1f3f5; padding:4px 8px; border-radius:4px; font-family:monospace; font-weight:600;'>" . $p->getIdPasien() . "</span></td>";
+                echo "<td><b>" . $p->getNama() . "</b></td>";
+                echo "<td>" . $p->cetakKlaimLayanan() . "</td>"; // Dynamic Binding 
+                echo "<td style='color: #e74c3c; font-weight: bold;'>Rp " . number_format($p->hitungTotalBiaya(), 0, ',', '.') . "</td>"; // Dynamic Binding
+                echo "</tr>";
+            }
+        }
+
+        if (!$dataDitemukan) {
+            echo "<tr><td colspan='4' style='text-align:center; color:red;'>Data pasien untuk kategori ini tidak ditemukan di database.</td></tr>";
+        }
     }
 }
