@@ -1,5 +1,5 @@
 <?php
-require_once 'Pasien.php';
+require_once __DIR__ . 'Pasien.php';
 
 class PasienUmum extends Pasien {
     private $nik;
